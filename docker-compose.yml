@@ -26,12 +26,14 @@ services:
         depends_on: 
             - mysql
             - redis
+            - elasticsearch
         restart: always
         container_name: php
         networks: 
             - lnmp
             - mysql_netword
             - php_redis
+            - elastic
         ports: 
             - "9000:9000"
         volumes: 
@@ -61,6 +63,23 @@ services:
             - "6379"
         networks: 
             - php_redis
+    elasticsearch:
+        build: ./elastic
+        environment:
+            - node.name=docker_elastic
+            - cluster.name=es-docker-cluster
+            - http.cors.enabled=true
+            - http.cors.allow-origin="*"
+            - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+            - discovery.seed_hosts=docker_elastic
+            - cluster.initial_master_nodes=docker_elastic
+        volumes:
+             - elastic_data:/usr/share/elasticsearch/data
+        ports:
+            - 9200:9200
+            - 9300:9300
+        networks:
+            - elastic
 
 
             
@@ -71,6 +90,9 @@ networks:
         driver: bridge
     php_redis:
         driver: bridge
+    elastic:
+        driver: bridge
 volumes: 
    mysql_data:
+   elastic_data:
 
