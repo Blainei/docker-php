@@ -63,16 +63,21 @@ services:
             - "6379"
         networks: 
             - php_redis
-    elasticsearch:
+    elastic:
         build: ./elastic
+        container_name: elastic
         environment:
-            - node.name=docker_elastic
+            - node.name=docker_elasitc
             - cluster.name=es-docker-cluster
             - http.cors.enabled=true
             - http.cors.allow-origin="*"
-            - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
-            - discovery.seed_hosts=docker_elastic
-            - cluster.initial_master_nodes=docker_elastic
+            - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+            - discovery.seed_hosts=elastic
+            - cluster.initial_master_nodes=docker_elasitc
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
         volumes:
              - elastic_data:/usr/share/elasticsearch/data
         ports:
@@ -80,6 +85,18 @@ services:
             - 9300:9300
         networks:
             - elastic
+    kibana:
+        image: docker.elastic.co/kibana/kibana:7.6.2@sha256:e8f3743e404462709663422056db2d5076a7a6bd6024f64aea1599b3014c63be
+        container_name: kibana
+        volumes: 
+            - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
+            - kibana_data:/usr/share/kibana/data
+        depends_on: 
+          - elastic
+        networks: 
+            - elastic
+        ports:
+            - "5601:5601"
 
 
             
